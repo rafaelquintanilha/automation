@@ -43,31 +43,31 @@ const target = readlineSync.question('User you want to analyze: ');
   );
 
   // Variables
-  const total = [];
+  const data = [];
   const urls = [];
   await page.evaluate(() => {
     window.i = 0;
   });
 
   while ( true ) {
-    
-	  await page.evaluate(async (DELAY) => {
-      console.log("Total visible tweets", document.querySelectorAll("div[data-testid=tweet]").length);
+    await page.evaluate(async (DELAY) => {
+      const tweetsSelector = "div[data-testid=tweet]";
+      console.log("Total visible tweets", document.querySelectorAll(tweetsSelector).length);
       console.log("Current index", window.i);
-      const element = document.querySelectorAll("div[data-testid=tweet]")[window.i];
-      if ( typeof element === "undefined" ) {
+      const tweet = document.querySelectorAll(tweetsSelector)[window.i];
+      if ( typeof tweet === "undefined" ) {
         console.log("Fetching more tweets");
         window.i = 0;
         window.scrollBy(0, 1500);
         const sleep = ms => { return new Promise(resolve => setTimeout(resolve, ms)); }
         await sleep(DELAY);
-        document.querySelectorAll("div[data-testid=tweet]")[0].click();
+        document.querySelectorAll(tweetsSelector)[0].click();
       } else {
-        element.click();
+        tweet.click();
       }
       window.i++;
     }, DELAY);
-    
+
     const url = page.url();
 
     if ( urls.indexOf(url) > -1 ) {
@@ -84,15 +84,15 @@ const target = readlineSync.question('User you want to analyze: ');
         node => `${node.textContent}`
       );
       console.log("Tweeted via", medium);
-      total.push(medium);
-      console.log("Evaluated", total.length, "tweets");
+      data.push(medium);
+      console.log("Evaluated", data.length, "tweets");
     }
 
     // Count how many were with the target medium
-    const count = total.filter(medium => medium === TARGET_MEDIUM).length;
-    const percentage = ((count / total.length) * 100).toFixed(2);
-    console.log(`Total tweets with ${TARGET_MEDIUM}: ${percentage}%`);
-  
+    const count = data.filter(medium => medium === TARGET_MEDIUM).length;
+    const percentage = ((count / data.length) * 100).toFixed(2);
+    console.log(`Total tweets via ${TARGET_MEDIUM}: ${percentage}%`);
+
     // Wait to prevent API throttle
     await sleep(DELAY);
     await page.goBack();
